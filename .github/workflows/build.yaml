@@ -1,9 +1,6 @@
 name: bootc build
 
 on:
-  schedule:
-    #- cron: "0 0 * * 5"
-    #- cron: '@hourly'
   push:
     branches:
     - 'main'
