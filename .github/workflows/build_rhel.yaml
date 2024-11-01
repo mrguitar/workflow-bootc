@@ -2,8 +2,10 @@ name: bootc build
 
 on:
   push:
-    branches:
-    - 'main'
+    Paths:
+      - 'rhel/**'
+    #branches:
+    #- 'main'
 
 jobs:
   build:
@@ -43,7 +45,7 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: latest ${{ github.sha }}
           containerfiles: |
-            ./Containerfile
+            ./rhel/Containerfile
 
       - name: Log in to the Quay Container registry
         uses: redhat-actions/podman-login@v1
