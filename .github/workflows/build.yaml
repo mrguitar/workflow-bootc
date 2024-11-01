@@ -26,6 +26,7 @@ jobs:
           activation_key: ${{ secrets.REDHAT_ACTIVATION_KEY }}
         run: |
           subscription-manager register --org=$orgid --activationkey=$activation_key
+          dnf install -y podman
      
       - name: Log in to Red Hat Registry
         uses: redhat-actions/podman-login@v1
