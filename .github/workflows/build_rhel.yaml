@@ -29,7 +29,7 @@ jobs:
         env:
           SMDEV_CONTAINER_OFF: 1
           orgid: ${{ secrets.REDHAT_ORGID }}
-          activation_key: ${{ secrets.RHT_ACTIVATION_KEY }}
+          activation_key: ${{ secrets.REDHAT_ACTIVATION_KEY }}
         run: subscription-manager register --org=$orgid --activationkey=$activation_key
       
       # workaround for https://github.com/redhat-actions/podman-login/issues/42 since the docker config from the host doesn't come up to the container
