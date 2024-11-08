@@ -65,6 +65,7 @@ jobs:
            registry: ${{ env.REGISTRY }}
            username: ${{ secrets.QUAY_USER }}
            password: ${{ secrets.QUAY_PASSWORD }}
+           auth_file_path: /run/containers/0/auth.json
 
 
       - name: Push To registry
