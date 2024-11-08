@@ -1,34 +1,44 @@
-name: bootc build
+name: bootc rhel build
 
 on:
   push:
     Paths:
       - 'rhel/**'
-    #branches:
-    #- 'main'
+    branches:
+    - 'main'
 
 jobs:
   build:
-    name: Build image
+    name: Build rhel image
     runs-on: ubuntu-latest
-    container:
-      image: registry.access.redhat.com/ubi9/ubi
     env:
       IMAGE_NAME: gh-wf
       REGISTRY: quay.io/mrguitar
+    container:
+      image: registry.access.redhat.com/ubi9/ubi
+      options: --privileged
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - name: Clone the repo
+        uses: actions/checkout@v3
+      
+      - name: Get container tools in UBI builder
+        run: dnf -y install --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablerepo=ubi-9-baseos-rpms podman buildah skopeo
 
-      - name: subscription-access
+      - name: Access a subscription via activation key
         env:
           SMDEV_CONTAINER_OFF: 1
           orgid: ${{ secrets.REDHAT_ORGID }}
-          activation_key: ${{ secrets.REDHAT_ACTIVATION_KEY }}
+          activation_key: ${{ secrets.RHT_ACTIVATION_KEY }}
+        run: subscription-manager register --org=$orgid --activationkey=$activation_key
+      
+      # workaround for https://github.com/redhat-actions/podman-login/issues/42 since the docker config from the host doesn't come up to the container
+      - name: Fix auth file
+        env:
+          auth: "{ \"auths\": {} }"
         run: |
-          subscription-manager register --org=$orgid --activationkey=$activation_key
-          dnf install -y podman
+          mkdir -p $HOME/.docker
+          echo $auth > $HOME/.docker/config.json
      
       - name: Log in to Red Hat Registry
         uses: redhat-actions/podman-login@v1
@@ -36,7 +46,9 @@ jobs:
            registry: registry.redhat.io
            username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
            password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
+           auth_file_path: /run/containers/0/auth.json
         continue-on-error: true
+        
 
       - name: Build image
         id: build-image
@@ -62,6 +74,13 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ steps.build-image.outputs.tags }}
           registry: ${{ env.REGISTRY }}
+
+      - name: Release the subscription
+        env:
+          SMDEV_CONTAINER_OFF: 1
+        run: |
+          subscription-manager remove --all
+          subscription-manager unregister
 
       - name: Print image url
         run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
