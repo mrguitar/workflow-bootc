@@ -1,0 +1,1 @@
+This is a playground space for working with github actions & bootc. Feel free to use anything here, but remember that this is not where "finished" work will show. Everything here is experimental and likely partially broken!
